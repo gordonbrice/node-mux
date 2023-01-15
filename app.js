@@ -1,7 +1,9 @@
 const { ethers } = require("ethers");
+var fs = require('fs');
+var keystore = JSON.parse(fs.readFileSync('keystore.json', 'utf8'));
 
 
-const provider = new ethers.providers.WebSocketProvider("wss://mainnet.infura.io/ws/v3/015df1be12b048868f4207cab21cb8f9");
+const provider = new ethers.providers.WebSocketProvider(keystore.value);
 
 provider.on('block', (blockNumber) => {
     console.log('Block: ' + blockNumber);
