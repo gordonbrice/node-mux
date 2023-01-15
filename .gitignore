@@ -105,3 +105,4 @@ dist
 
 # User defined
 keystore.json
+.env

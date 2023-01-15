@@ -1,9 +1,7 @@
+require('dotenv').config();
 const { ethers } = require("ethers");
-var fs = require('fs');
-var keystore = JSON.parse(fs.readFileSync('keystore.json', 'utf8'));
+const provider = new ethers.providers.WebSocketProvider(process.env.INFURA_WSS);
 
-
-const provider = new ethers.providers.WebSocketProvider(keystore.value);
 
 provider.on('block', (blockNumber) => {
     console.log('Block: ' + blockNumber);
