@@ -14,26 +14,32 @@ wss.on('connection', ws => {
         console.log(`Received message: ${message}`);
         ws.send(`Server received: ${message}`);
 
-        provider.on('block', (blockNumber) => {
-            console.log(`Block: ${blockNumber}`);
-            //ws.send(`Block: ${blockNumber}`);
+        if (message == "Infura") {
+            provider.on('block', (blockNumber) => {
+                console.log(`Block: ${blockNumber}`);
+                //ws.send(`Block: ${blockNumber}`);
 
-            const gas = async () => {
-                var gasPrice = await provider.getGasPrice();
+                const gas = async () => {
+                    var gasPrice = await provider.getGasPrice();
 
-                console.log(`Gas: ${gasPrice}`);
+                    console.log(`Gas: ${gasPrice}`);
 
-                var res = {};
+                    var res = {};
 
-                res.Name = message.toString();
-                res.BlockNum = blockNumber.toString();
-                res.GasPrice = gasPrice.toString();
-                console.log(JSON.stringify(res));
-                //ws.send(`Gas: ${gasPrice}`);
-                ws.send(JSON.stringify(res));
-            }
-            gas();
-        });
+                    res.Name = message.toString();
+                    res.BlockNum = blockNumber.toString();
+                    res.GasPrice = gasPrice.toString();
+                    console.log(JSON.stringify(res));
+                    //ws.send(`Gas: ${gasPrice}`);
+                    ws.send(JSON.stringify(res));
+                }
+                gas();
+            });
+
+        }
+        else {
+            ws.send("Unrecognized message.");
+        }
     });
 
     ws.on('close', () => {
