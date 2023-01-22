@@ -9,9 +9,6 @@ wss.on('connection', ws => {
     var keystore = JSON.parse(fs.readFileSync('keystore.json', 'utf8'));
     var provider = new ethers.providers.WebSocketProvider(keystore.value);
 
-    //console.log(keystore.value);
-    //console.log(port);
-    //ws.send(`Listening on port: ${port}`)
     ws.on('message', message => {
 
         console.log(`Received message: ${message}`);
@@ -19,12 +16,21 @@ wss.on('connection', ws => {
 
         provider.on('block', (blockNumber) => {
             console.log(`Block: ${blockNumber}`);
-            ws.send(`Block: ${blockNumber}`);
+            //ws.send(`Block: ${blockNumber}`);
+
             const gas = async () => {
                 var gasPrice = await provider.getGasPrice();
 
                 console.log(`Gas: ${gasPrice}`);
-                ws.send(`Gas: ${gasPrice}`);
+
+                var res = {};
+
+                res.Name = message.toString();
+                res.BlockNum = blockNumber.toString();
+                res.GasPrice = gasPrice.toString();
+                console.log(JSON.stringify(res));
+                //ws.send(`Gas: ${gasPrice}`);
+                ws.send(JSON.stringify(res));
             }
             gas();
         });
