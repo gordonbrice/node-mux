@@ -19,21 +19,28 @@ wss.on('connection', ws => {
                 console.log(`Block: ${blockNumber}`);
                 //ws.send(`Block: ${blockNumber}`);
 
+                var res = {};
+
+                res.Name = message.toString();
+                res.BlockNum = blockNumber.toString();
+
                 const gas = async () => {
-                    var gasPrice = await provider.getGasPrice();
+                    return await provider.getGasPrice();
+                }
 
-                    console.log(`Gas: ${gasPrice}`);
+                let promises = [
+                    gas()
 
-                    var res = {};
+                ]
 
-                    res.Name = message.toString();
-                    res.BlockNum = blockNumber.toString();
-                    res.GasPrice = gasPrice.toString();
+                Promise.all(promises).then((values) => {
+                    res.GasPrice = values[0].toString();
                     console.log(JSON.stringify(res));
                     //ws.send(`Gas: ${gasPrice}`);
                     ws.send(JSON.stringify(res));
-                }
-                gas();
+                }).catch((error) => {
+                    console.error(error);
+                })
             });
 
         }
