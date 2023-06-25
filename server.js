@@ -38,13 +38,11 @@ wss.on('connection', ws => {
                     res.GasPrice = values[0].toString();
                     res.EL_ClientVer = values[1].toString();
                     console.log(JSON.stringify(res));
-                    //ws.send(`Gas: ${gasPrice}`);
                     ws.send(JSON.stringify(res));
                 }).catch((error) => {
                     console.error(error);
                 })
             });
-
         }
         else {
             ws.send("Unrecognized message.");
@@ -58,11 +56,6 @@ wss.on('connection', ws => {
 });
 
 async function getClientVersion() {
-    /*const web3 = () => {
-        return (web3 = new Web3(
-            new Web3.providers.HttpProvider(process.env.INFURA_HTTPS)
-        ));
-    }*/
     const web3 = new Web3(process.env.INFURA_HTTPS);
 
     try {
@@ -72,40 +65,3 @@ async function getClientVersion() {
     }
 }
 
-/*async function GetEL_Version() {
-    const http = require('http');
-
-    var postData = JSON.stringify({
-        'jsonrpc': '2.0',
-        'method': 'web3_clientVersion',
-        'params': [],
-        'id': 67
-    });
-
-    var options = {
-        hostname: 'http://192.168.68.50/',
-        port: 8545,
-        path: '',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': postData.length
-        }
-    };
-
-    var req = http.request(options, (res) => {
-        console.log('statusCode:', res.statusCode);
-        console.log('headers:', res.headers);
-
-        res.on('data', (d) => {
-            return d;
-        });
-    });
-
-    req.on('error', (e) => {
-        console.error(e);
-    });
-
-    req.write(postData);
-    req.end();
-}*/
