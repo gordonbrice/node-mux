@@ -18,7 +18,8 @@ wss.on('connection', ws => {
         if (message == "Infura") {
             provider.on('block', (blockNumber) => {
                 console.log(`Block: ${blockNumber}`);
-                //ws.send(`Block: ${blockNumber}`);
+                ws.send(`Block: ${blockNumber}`);
+                ws.send('Requesting data.');
 
                 var res = {};
 
@@ -41,6 +42,7 @@ wss.on('connection', ws => {
                     ws.send(JSON.stringify(res));
                 }).catch((error) => {
                     console.error(error);
+                    ws.send(error);
                 })
             });
         }
