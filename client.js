@@ -1,11 +1,15 @@
 const WebSocket = require('ws');
 
-//const url = 'ws://localhost:8080';
-const url = 'ws://node-mux.azurewebsites.net';
+const url = 'ws://localhost:8080';
+//const url = 'ws://node-mux.azurewebsites.net';
 const connection = new WebSocket(url);
+const req = {
+    Infura: true,
+    Log: false
+};
 
 connection.onopen = () => {
-    connection.send("Infura");
+    connection.send(JSON.stringify(req));
 }
 
 connection.onerror = (error) => {

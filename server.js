@@ -6,24 +6,28 @@ const wss = new WebSocket.Server({ port: port });
 require('dotenv').config();
 
 wss.on('connection', ws => {
-    var fs = require('fs');
-
     var provider = new ethers.providers.WebSocketProvider(process.env.INFURA_WSS);
 
     ws.on('message', message => {
+        var req = JSON.parse(message);
 
-        console.log(`Received message: ${message}`);
-        ws.send(`Server received: ${message}`);
+        //console.log(`Received message: ${message}`);
+        if (req.Log == true) {
+            ws.send(`Server received: ${message}`);
+        }
 
-        if (message == "Infura") {
+        if (req.Infura == true) {
             provider.on('block', (blockNumber) => {
                 console.log(`Block: ${blockNumber}`);
-                ws.send(`Block: ${blockNumber}`);
-                ws.send('Requesting data.');
+
+                if (req.Log == true) {
+                    ws.send(`Block: ${blockNumber}`);
+                    ws.send('Requesting data.');
+                }
 
                 var res = {};
 
-                res.Name = message.toString();
+                res.Name = "Infura";
                 res.BlockNum = blockNumber.toString();
 
                 const gas = async () => {
