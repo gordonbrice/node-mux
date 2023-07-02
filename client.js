@@ -5,6 +5,8 @@ const url = 'ws://localhost:8080';
 const connection = new WebSocket(url);
 const req = {
     Infura: true,
+    EthNode: false,
+    Alchemy: true,
     Log: false
 };
 

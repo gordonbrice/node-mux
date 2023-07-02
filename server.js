@@ -17,45 +17,21 @@ wss.on('connection', ws => {
         }
 
         if (req.Infura == true) {
-            var provider = new ethers.providers.WebSocketProvider(process.env.INFURA_WSS);
             const idx = providers.length;
 
-            providers[idx] = provider;
-            provider.on('block', (blockNumber) => {
-                console.log(`Block: ${blockNumber}`);
-
-                if (req.Log == true) {
-                    ws.send(`Block: ${blockNumber}`);
-                    ws.send('Requesting data.');
-                }
-
-                var res = {};
-
-                res.Name = "Infura";
-                res.BlockNum = blockNumber.toString();
-
-                const gas = async () => {
-                    return await provider.getGasPrice();
-                }
-
-                let promises = [
-                    gas(),
-                    getClientVersion()
-                ]
-
-                Promise.all(promises).then((values) => {
-                    res.GasPrice = values[0].toString();
-                    res.EL_ClientVer = values[1].toString();
-                    console.log(JSON.stringify(res));
-                    ws.send(JSON.stringify(res));
-                }).catch((error) => {
-                    console.error(error);
-                    ws.send(error);
-                })
-            });
+            providers[idx] = startProvider("Infura", req.Log, ws);
         }
-        else {
-            ws.send("Unrecognized message.");
+
+        if (req.Alchemy == true) {
+            const idx = providers.length;
+
+            providers[idx] = startProvider("Alchemy", req.Log, ws);
+        }
+
+        if (req.EthNode == true) {
+            const idx = providers.length;
+
+            //providers[idx] = startProvider("EthNode", req.Log, ws);
         }
     });
 
@@ -65,8 +41,26 @@ wss.on('connection', ws => {
     });
 });
 
-async function getClientVersion() {
-    const web3 = new Web3(process.env.INFURA_HTTPS);
+async function getClientVersion(providerName) {
+    var web3;
+
+    switch (providerName) {
+        case "Infura":
+            web3 = new Web3(process.env.INFURA_HTTPS);
+            break;
+
+        case "Alchemy":
+            web3 = new Web3(process.env.ALCHEMY_HTTPS);
+            break;
+
+        case "EthNode":
+            web3 = new Web3(process.env.ETHNODE_HTTPS);
+            break;
+
+        default:
+            web3 = new Web3(process.env.INFURA_HTTPS);
+            break;
+    }
 
     try {
         return await web3.eth.getNodeInfo();
@@ -78,5 +72,66 @@ async function getClientVersion() {
 function disconnect(provider, index, array) {
     provider._websocket.terminate();
     console.log(`Disconnected: ${index}`);
+}
+
+function startProvider(providerName, logBackToClient, ws) {
+    var provider;
+
+    switch (providerName) {
+        case "Infura":
+            console.log(`Starting ${providerName}`);
+            provider = new ethers.providers.WebSocketProvider(process.env.INFURA_WSS);
+            break;
+
+        case "Alchemy":
+            console.log(`Starting ${providerName}`);
+            provider = new ethers.providers.WebSocketProvider(process.env.ALCHEMY_WSS);
+            break;
+
+        case "EthNode":
+            console.log(`Starting ${providerName}`);
+            provider = new ethers.providers.WebSocketProvider(process.env.ETHNODE_WS);
+            break;
+
+        default:
+            console.log(`Starting default provider.`);
+            provider = new ethers.providers.WebSocketProvider(process.env.INFURA_WSS);
+            break;
+    }
+
+    provider.on('block', (blockNumber) => {
+        console.log(`Block: ${blockNumber}`);
+
+        if (logBackToClient) {
+            ws.send(`Block: ${blockNumber}`);
+            ws.send('Requesting data.');
+        }
+
+        var res = {};
+
+        res.Name = providerName;
+        res.BlockNum = blockNumber.toString();
+
+        const gas = async () => {
+            return await provider.getGasPrice();
+        }
+
+        let promises = [
+            gas(),
+            getClientVersion(providerName)
+        ]
+
+        Promise.all(promises).then((values) => {
+            res.GasPrice = values[0].toString();
+            res.EL_ClientVer = values[1].toString();
+            console.log(JSON.stringify(res));
+            ws.send(JSON.stringify(res));
+        }).catch((error) => {
+            console.error(error);
+            ws.send(error);
+        })
+    });
+
+    return provider;
 }
 
