@@ -7,6 +7,7 @@ const req = {
     Infura: true,
     EthNode: false,
     Alchemy: true,
+    DataOption: "Leader",
     Log: false
 };
 

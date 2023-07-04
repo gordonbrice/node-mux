@@ -12,6 +12,8 @@ wss.on('connection', ws => {
         var req = JSON.parse(message);
 
         //console.log(`Received message: ${message}`);
+        //console.log(`Req.DataOption: ${req.DataOption}`);
+
         if (req.Log == true) {
             ws.send(`Server received: ${message}`);
         }
@@ -19,13 +21,13 @@ wss.on('connection', ws => {
         if (req.Infura == true) {
             const idx = providers.length;
 
-            providers[idx] = startProvider("Infura", req.Log, ws);
+            providers[idx] = startProvider("Infura", req, ws);
         }
 
         if (req.Alchemy == true) {
             const idx = providers.length;
 
-            providers[idx] = startProvider("Alchemy", req.Log, ws);
+            providers[idx] = startProvider("Alchemy", req, ws);
         }
 
         if (req.EthNode == true) {
@@ -74,8 +76,10 @@ function disconnect(provider, index, array) {
     console.log(`Disconnected: ${index}`);
 }
 
-function startProvider(providerName, logBackToClient, ws) {
+function startProvider(providerName, req, ws) {
     var provider;
+
+    console.log(`Starting Provider: ${req.Infura}, ${req.Alchemy}, ${req.DataOption}`);
 
     switch (providerName) {
         case "Infura":
@@ -100,38 +104,65 @@ function startProvider(providerName, logBackToClient, ws) {
     }
 
     provider.on('block', (blockNumber) => {
-        console.log(`Block: ${blockNumber}`);
+        console.log(`Block: ${blockNumber}, DataOption = ${req.DataOption}`);
 
-        if (logBackToClient) {
+        //const storage = require('./StorageService.js');
+        const storage = StorageService.getInstance();
+
+        if (blockNumber > storage.blockNumber || req.DataOption == "All") {
+            storage.blockNumber = blockNumber;
+
+            var res = {};
+
+            res.Name = providerName;
+            res.BlockNum = blockNumber.toString();
+
+            const gas = async () => {
+                return await provider.getGasPrice();
+            }
+
+            let promises = [
+                gas(),
+                getClientVersion(providerName)
+            ]
+
+            Promise.all(promises).then((values) => {
+                res.GasPrice = values[0].toString();
+                res.EL_ClientVer = values[1].toString();
+                console.log(JSON.stringify(res));
+                ws.send(JSON.stringify(res));
+            }).catch((error) => {
+                console.error(error);
+                ws.send(error);
+            })
+        }
+
+        if (req.Log) {
             ws.send(`Block: ${blockNumber}`);
             ws.send('Requesting data.');
         }
-
-        var res = {};
-
-        res.Name = providerName;
-        res.BlockNum = blockNumber.toString();
-
-        const gas = async () => {
-            return await provider.getGasPrice();
-        }
-
-        let promises = [
-            gas(),
-            getClientVersion(providerName)
-        ]
-
-        Promise.all(promises).then((values) => {
-            res.GasPrice = values[0].toString();
-            res.EL_ClientVer = values[1].toString();
-            console.log(JSON.stringify(res));
-            ws.send(JSON.stringify(res));
-        }).catch((error) => {
-            console.error(error);
-            ws.send(error);
-        })
     });
 
     return provider;
 }
 
+StorageService = (function () {
+    var instance;
+
+    function createInstance() {
+        var object = new Object();
+
+        object.blockNumber = "";
+        return object;
+    }
+
+    return { // public interface
+        getInstance: function () {
+            if (!instance) {
+                instance = createInstance();
+            }
+
+            return instance;
+        },
+    };
+})();
