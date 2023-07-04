@@ -1,4 +1,7 @@
 {
     "appService.defaultWebAppToDeploy": "/subscriptions/c0470ad5-23b3-4529-8ca2-30a53872356b/AppServices/subscriptions/c0470ad5-23b3-4529-8ca2-30a53872356b/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/node-mux",
-    "appService.deploySubpath": "."
+    "appService.deploySubpath": ".",
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "main"
+    ]
 }
